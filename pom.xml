@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.crpt.analytics</groupId>
+    <artifactId>datalake_etl</artifactId>
+    <packaging>pom</packaging>
+    <!--Don't change it. Used for maven CI-friendly build style-->
+    <version>${revision}</version>
+    <modules>
+      <module>common</module>
+      <module>common-apps</module>
+    </modules>
+    <properties>
+      <java.version>17</java.version>
+      <!--default revision if not set via -Drevision-->
+      <revision>0.0.1-SNAPSHOT-sp3.3.0</revision>
+    <!--Maven-->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <scala.maven.plugin.version>4.7.2</scala.maven.plugin.version>
+    <maven.assembly.plugin.version>3.4.2</maven.assembly.plugin.version>
+    <!--Scala-->
+    <scala.compat.version>2.12</scala.compat.version>
+    <scala.version>${scala.compat.version}.15</scala.version>
+    <scala.compile.target.jvm>jvm-1.17</scala.compile.target.jvm>
+    <scalatest.version>3.2.12</scalatest.version>
+    <scalatest.maven.plugin.version>2.1.0</scalatest.maven.plugin.version>
+    <!--Spark-->
+    <spark.version>3.3.0</spark.version>
+    <spark.avro.version>3.3.0</spark.avro.version>
+    <!--Enforced versions for Spark-->
+    <fasterxml.jackson.version>2.13.4</fasterxml.jackson.version>
+    <fasterxml.jackson-module-scala.version>2.13.4</fasterxml.jackson-module-scala.version>
+    <fasterxml.jackson.databind.version>2.13.4</fasterxml.jackson.databind.version>
+    <fasterxml.jackson.yaml.version>2.13.4</fasterxml.jackson.yaml.version>
+    <!--Log4J2-->
+    <log4j.version>2.13.3</log4j.version>
+    <slf4j.log4j2.version>1.7.26</slf4j.log4j2.version>
+    <scala.logging.version>3.9.5</scala.logging.version>
+    <!--Clickhouse-->
+    <clickhouse.jdbc.version>0.2.4</clickhouse.jdbc.version>
+    <testcontainers.clickhouse.version>1.16.0</testcontainers.clickhouse.version>
+    <!--Postgres-->
+    <testcontainers.postgresql.version>1.16.0</testcontainers.postgresql.version>
+    <!--Mockito-->
+    <mockito.version>3.3.0</mockito.version>
+    <!--Docker-->
+    <testcontainers.version>1.16.0</testcontainers.version>
+    <!--Shade Maven plug-in-->
+    <maven.shade.plugin.version>3.2.1</maven.shade.plugin.version>
+    <!--Surefire Maven plug-in-->
+    <maven.surefire.plugin.version>3.0.0-M3</maven.surefire.plugin.version>
+    <!--Configurations-->
+    <jcommander.version>1.78</jcommander.version>
+    <typesafe.config.version>1.4.2</typesafe.config.version>
+    <!--Tests-->
+    <spark.fast.tests.version>0.23.0</spark.fast.tests.version>
+    <skip.unit.tests>false</skip.unit.tests>
+    <skip.integration.tests>true</skip.integration.tests>
+    <guava.version>14.0.1</guava.version>
+     <!--Deploy-->
+    <nexus.repo.url>https://some-nexus-url.com</nexus.repo.url>
+    <nexus.staging.maven.plugin.version>1.6.13</nexus.staging.maven.plugin.version>
+
+    <!--for tests runs in JVM 17-->
+    <extraJavaTestArgs>
+      -XX:+IgnoreUnrecognizedVMOptions
+      --add-opens=java.base/java.lang=ALL-UNNAMED
+      --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+      --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+      --add-opens=java.base/java.io=ALL-UNNAMED
+      --add-opens=java.base/java.net=ALL-UNNAMED
+      --add-opens=java.base/java.nio=ALL-UNNAMED
+      --add-opens=java.base/java.util=ALL-UNNAMED
+      --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+      --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED
+      --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
+      --add-opens=java.base/sun.nio.cs=ALL-UNNAMED
+      --add-opens=java.base/sun.security.action=ALL-UNNAMED
+      --add-opens=java.base/sun.util.calendar=ALL-UNNAMED
+      -Djdk.reflect.useDirectMethodHandle=false
+    </extraJavaTestArgs>
+    <CodeCacheSize>128m</CodeCacheSize>
+  </properties>
+
+  <dependencies>
+    <!--Scala-->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-compiler</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <!--Jackson-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${fasterxml.jackson.databind.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+      <version>${fasterxml.jackson-module-scala.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <version>${fasterxml.jackson.yaml.version}</version>
+    </dependency>
+
+    <!--Spark-->
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-core_${scala.compat.version}</artifactId>
+      <version>${spark.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-sql_${scala.compat.version}</artifactId>
+      <version>${spark.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming_${scala.compat.version}</artifactId>
+      <version>${spark.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-avro_${scala.compat.version}</artifactId>
+      <version>${spark.avro.version}</version>
+    </dependency>
+
+    <!--Logging-->
+    <dependency>
+      <groupId>com.typesafe.scala-logging</groupId>
+      <artifactId>scala-logging_${scala.compat.version}</artifactId>
+      <version>${scala.logging.version}</version>
+    </dependency>
+
+    <!--Configurations-->
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>${jcommander.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.typesafe</groupId>
+      <artifactId>config</artifactId>
+      <version>${typesafe.config.version}</version>
+    </dependency>
+
+    <!--Tests-->
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_${scala.compat.version}</artifactId>
+      <version>${scalatest.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scalatestplus</groupId>
+      <artifactId>mockito-3-4_${scala.compat.version}</artifactId>
+      <version>3.2.10.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>clickhouse</artifactId>
+      <version>${testcontainers.clickhouse.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${testcontainers.postgresql.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ru.yandex.clickhouse</groupId>
+      <artifactId>clickhouse-jdbc</artifactId>
+      <version>${clickhouse.jdbc.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <filtering>true</filtering>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+
+    <plugins>
+
+      <!-- compile scala -->
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>${scala.maven.plugin.version}</version>
+        <configuration>
+          <scalaVersion>${scala.version}</scalaVersion>
+          <sendJavaToScalac>false</sendJavaToScalac>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <args>
+            <arg>-deprecation</arg>
+            <arg>-unchecked</arg>
+            <arg>-uniqid</arg>
+            <arg>-no-specialization</arg>
+            <arg>-encoding</arg>
+            <arg>UTF-8</arg>
+            <arg>-feature</arg>
+            <!-- prints a message when a method is generated that uses Reflection -->
+            <arg>-Xlog-reflective-calls</arg>
+            <arg>-Ywarn-adapted-args</arg>
+            <arg>-nobootcp</arg>
+          </args>
+
+          <recompileMode>all</recompileMode>
+          <jvmArgs>
+            <jvmArg>-Xms256m</jvmArg>
+            <jvmArg>-Xmx1024m</jvmArg>
+            <jvmArg>-Xss10m</jvmArg>
+          </jvmArgs>
+
+        </configuration>
+        <executions>
+          <execution>
+            <id>scala-compile</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-source</goal>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>scala-test-compile</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- disable surefire-->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <skipTests>true</skipTests>
+          <argLine>-Xmx8g</argLine>
+        </configuration>
+      </plugin>
+
+      <!-- enable scalatest -->
+      <plugin>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-maven-plugin</artifactId>
+        <version>${scalatest.maven.plugin.version}</version>
+        <configuration>
+          <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+          <junitxml>.</junitxml>
+          <filereports>TestSuite.txt</filereports>
+          <argLine>-ea -Xmx4g -Xss4m -XX:MaxMetaspaceSize=2g -XX:ReservedCodeCacheSize=${CodeCacheSize} ${extraJavaTestArgs} -Dio.netty.tryReflectionSetAccessible=true</argLine>
+        </configuration>
+        <executions>
+          <execution>
+            <id>unit-tests</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <suffixes>(?&lt;!IT)</suffixes>
+              <skipTests>${skip.unit.tests}</skipTests>
+            </configuration>
+          </execution>
+          <execution>
+            <id>integration-tests</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <suffixes>(?&lt;=IT)</suffixes>
+              <skipTests>${skip.integration.tests}</skipTests>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- make assembly -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>${maven.assembly.plugin.version}</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- disable default deploy plugin to use Nexus -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>3.0.0-M1</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <!-- deploy to Nexus -->
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>${nexus.staging.maven.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>default-deploy</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>deploy</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <serverId>nexus</serverId>
+          <nexusUrl>${nexus.repo.url}</nexusUrl>
+          <skipStaging>true</skipStaging>
+        </configuration>
+      </plugin>
+
+      <!--Plugin resolving and removing $revision-->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.1.0</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!--In case of Nexus usage uncomment these properties and correct them according to your env-->
+  <!--<repositories>
+    <repository>
+      <id>dev-team</id>
+      <name>my-awesome-nexus</name>
+      <url>${nexus.repo.url}/repository/dev-team/</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    &lt;!&ndash;Release repo&ndash;&gt;
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>nexus-release</id>
+      <name>Common nexus release repository</name>
+      &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+      <url>${nexus.repo.url}/repository/release/</url>
+    </repository>
+
+    &lt;!&ndash;Snapshot repo&ndash;&gt;
+    <snapshotRepository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>nexus-snapshots</id>
+      <name>Common nexus snapshot repository</name>
+      <url>${nexus.repo.url}/repository/dev-team-snapshot</url>
+    </snapshotRepository>
+    <downloadUrl>${nexus.repo.url}/repository/dev-team-snaphot</downloadUrl>
+  </distributionManagement>-->
+
+</project>
